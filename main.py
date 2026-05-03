@@ -8,16 +8,17 @@ def load_excel(excel_file, profiler:str = "KIC")-> pd.DataFrame:
     """
     Loads the excel_file and cleans data
     """
-
     if profiler == "KIC":
         # skip the first 101 rows since it is jus bs 
-        data = pd.read_excel(excel_file, skiprows=101)
-        # remove the two unnamed columns? how is it reading nan obj  bro ([:-2]) negative indexing means to remove the last two columns
-        cleaned = data.columns[:-2]
+        first_column = pd.read_excel(excel_file, usecols=[0])
+        n = first_column.index[first_column.iloc[:, 0] == "Seconds"].tolist()[0]
+
+        raw_data = pd.read_excel(excel_file, skiprows=n+1)
         # this part tells to only keep the columns that are in the cleaned columns list
-        data = data[cleaned]
+        data = raw_data[raw_data.columns[:-2]]
         # adds minutes column in the first column
         data.insert(0, "Minutes", data["Seconds"] / 60)
+       
         # Removes the Seconds Columns 
         cleaned = data.drop(data.columns[[1]], axis=1)
 
@@ -69,7 +70,7 @@ with st.sidebar:
     st.header("Temperature Profiler")
     uploaded_file = st.file_uploader("Upload Profiler Data Excel File here :3", type=["xlsx"])
     profiler = st.pills("Select Profiler Type", options=["KIC", "SEFRAM"])
-    test = st.pills("Select Test Type", options=["Thermal Cycle (TC)", "Humidity Freeze (HF)", "Damp Heat (DH)", "Bake", "Thermal Shock (TS)"])
+    test = st.pills("Select Test Type", options=["Thermal Cycle (TC)", "Humidity Freeze (HF)", "Damp Heat (DH)", "Thermal Shock (TS)"])
 
 
     run_button = st.button(label = "Run", use_container_width=True)
@@ -100,9 +101,6 @@ if run_button:
         elif test == "Damp Heat (DH)":
             # ?? i forgor
             limits = []
-        elif test == "Bake":
-            limits = [0, 120]
-
         elif test == "Thermal Shock (TS)":
             # thermal shock -70? to 140?
             limits = [-70, 140]
@@ -136,3 +134,5 @@ if run_button:
         
         st.dataframe(dwell_times)
 
+
+        
