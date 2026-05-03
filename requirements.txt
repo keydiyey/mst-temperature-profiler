@@ -1,4 +1,4 @@
-python
+numpy
 pandas
 streamlit
 seaborn
